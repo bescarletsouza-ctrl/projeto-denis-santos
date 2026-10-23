@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pesquisa — Conhecendo nosso público | Denis Santos</title>
+<style>
+  /* ==== ID VISUAL: troque apenas estas variáveis ==== */
+  :root {
+    --bg: #f6f5f2;
+    --card: #ffffff;
+    --text: #1c1c1c;
+    --muted: #6b6b6b;
+    --primary: #2f4a3a;        /* cor principal */
+    --primary-text: #ffffff;
+    --border: #e2e0da;
+    --option-hover: #f1efe9;
+    --radius: 14px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: var(--bg); color: var(--text); font-family: var(--font);
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .wrap { width: 100%; max-width: 640px; padding: 24px 16px 48px; }
+
+  header { text-align: center; margin-bottom: 20px; }
+  .logo { height: 48px; margin-bottom: 12px; } /* coloque seu logo aqui */
+  header h1 { font-size: 1.25rem; margin: 0; }
+
+  .progress { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+  .progress span { display: block; height: 100%; width: 0; background: var(--primary); transition: width .3s; }
+  .counter { font-size: .85rem; color: var(--muted); margin-bottom: 16px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px 24px;
+  }
+
+  .step { display: none; }
+  .step.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .step h2 { font-size: 1.2rem; line-height: 1.35; margin: 0 0 20px; }
+  .block-label {
+    font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--primary); margin: 0 0 8px;
+  }
+
+  .option {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; margin-bottom: 10px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    cursor: pointer; transition: background .15s, border-color .15s;
+  }
+  .option:hover { background: var(--option-hover); }
+  .option input { accent-color: var(--primary); width: 18px; height: 18px; margin: 0; flex-shrink: 0; }
+  .option:has(input:checked) { border-color: var(--primary); background: var(--option-hover); }
+
+  .other-input {
+    display: none; width: 100%; margin: 4px 0 10px;
+    padding: 12px 14px; font: inherit;
+    border: 1.5px solid var(--border); border-radius: 10px;
+  }
+  .other-input.show { display: block; }
+  .other-input:focus { outline: none; border-color: var(--primary); }
+
+  .nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 12px 22px; border-radius: 10px; border: none;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-text); margin-left: auto; }
+  .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-back { background: transparent; color: var(--muted); padding-left: 0; }
+  .btn-back[hidden] { display: none; }
+
+  .welcome { text-align: center; padding: 16px 0 8px; }
+  .welcome h2 { font-size: 1.5rem; line-height: 1.3; margin: 0 0 12px; }
+  .welcome p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
+  .welcome .time { color: var(--text); font-weight: 600; margin: 20px 0 4px; }
+  .welcome .cta { color: var(--text); margin-bottom: 24px; }
+  .welcome .btn-primary { margin: 0 auto; padding: 14px 36px; }
+  #survey[hidden] { display: none; }
+
+  .done { text-align: center; padding: 16px 0 8px; }
+  .done h2 { font-size: 1.4rem; line-height: 1.3; margin: 0 0 16px; }
+  .done p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
+  .done .highlight { color: var(--text); font-weight: 600; margin-top: 20px; }
+  .done .bye { color: var(--text); margin: 0; }
+  .error { color: #b3261e; font-size: .9rem; margin-top: 12px; display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <!-- <img class="logo" src="logo.png" alt="Denis Santos"> -->
+    <h1>Pesquisa — Conhecendo nosso público</h1>
+  </header>
+
+  <!-- Tela de boas-vindas -->
+  <section class="card" id="welcome">
+    <div class="welcome">
+      <h2>Queremos conhecer melhor você!</h2>
+      <p>Cada pessoa tem uma história, desafios e objetivos diferentes. E queremos entender um pouco mais sobre a sua realidade, seus interesses e o que é importante para você.</p>
+      <p>Preparamos uma pesquisa rápida para conhecer melhor quem acompanha o Denis Santos e desenvolver conteúdos e experiências cada vez mais relevantes.</p>
+      <p class="time">⏱ Leva apenas 3 minutos para responder.</p>
+      <p class="cta">Vamos começar?</p>
+      <button type="button" class="btn-primary" id="start">Começar</button>
+    </div>
+  </section>
+
+  <div id="survey" hidden>
+  <div class="progress"><span id="bar"></span></div>
+  <div class="counter" id="counter"></div>
+
+  <form class="card" id="form" novalidate>
+    <div id="steps"></div>
+
+    <!-- Tela de encerramento -->
+    <div class="step" id="done">
+      <div class="done">
+        <h2>Obrigado por compartilhar um pouco da sua história! 💙</h2>
+        <p>Suas respostas são muito importantes para nós!</p>
+        <p>Elas nos ajudam a compreender melhor seus interesses, desafios e objetivos, para que possamos desenvolver conteúdos e experiências que realmente façam diferença na sua jornada.</p>
+        <p class="highlight">Continue acompanhando o Denis Santos. Temos muito conhecimento para compartilhar com você!</p>
+        <p class="bye">Até breve!</p>
+      </div>
+    </div>
+
+    <div class="nav" id="nav">
+      <button type="button" class="btn-back" id="back">← Voltar</button>
+      <button type="button" class="btn-primary" id="next" disabled>Próxima</button>
+    </div>
+    <div class="error" id="error">Não foi possível enviar. Verifique sua conexão e tente novamente.</div>
+  </form>
+  </div>
+</div>
+
+<script>
+  // URL do Web App do Google Apps Script (veja apps-script.gs)
+  const ENDPOINT = "https://script.google.com/macros/s/AKfycbxqPpgKR7QCVHaS6eY81IES4wP20kDuYR32l6WWrdOKWHNNLApjuVxK_vPu5dvASJ_T/exec";
+
+  // "key" precisa bater com as colunas definidas em apps-script.gs
+  const B1 = "Bloco 1 — Perfil e atuação profissional";
+  const B2 = "Bloco 2 — Dores, desafios e desejos";
+  const B3 = "Bloco 3 — Conhecimento e interesse em psicanálise";
+  const QUESTIONS = [
+    { block: B1, key: "faixa_etaria", title: "Qual é a sua faixa etária?",
+      options: ["Até 24 anos", "25 a 34 anos", "35 a 44 anos", "45 a 54 anos", "55 anos ou mais"] },
+    { block: B1, key: "ocupacao", title: "Qual é a sua ocupação atual?",
+      options: ["Empresário(a) / Empreendedor(a)", "Profissional autônomo(a)", "Empregado(a) / CLT", "Executivo(a) / Gestor(a)", "Estudante", "Não estou trabalhando atualmente", "Outro"] },
+    { block: B1, key: "segmento", title: "Em qual segmento você atua atualmente?",
+      options: ["Saúde e bem-estar", "Educação e ensino", "Comércio e varejo", "Serviços e consultoria", "Tecnologia e inovação", "Indústria", "Construção civil e mercado imobiliário", "Agronegócio", "Marketing e comunicação", "Liderança religiosa e atividades ministeriais", "Outro", "Não atuo profissionalmente no momento"] },
+    { block: B1, key: "faturamento", title: "Qual é a faixa de faturamento mensal do seu negócio ou atividade profissional?",
+      options: ["Não faturo ainda", "Até R$ 50 mil/mês", "R$ 50 mil a R$ 150 mil/mês", "R$ 150 mil a R$ 500 mil/mês", "R$ 500 mil a R$ 1 milhão/mês", "R$ 1 milhão a R$ 5 milhões/mês", "R$ 5 milhões a R$ 10 milhões/mês", "Acima de R$ 10 milhões/mês", "Não tenho negócio ou atividade profissional própria", "Prefiro não informar"] },
+    { block: B2, key: "area_desenvolver", title: "Qual área da sua vida você mais deseja desenvolver atualmente?",
+      options: ["Equilíbrio emocional", "Relacionamentos e família", "Autoconhecimento", "Vida profissional e financeira", "Espiritualidade e propósito"] },
+    { block: B2, key: "maior_desafio", title: "Qual é o seu maior desafio atualmente?",
+      options: ["Lidar com ansiedade e preocupações", "Compreender e administrar minhas emoções", "Melhorar meus relacionamentos", "Superar inseguranças e experiências do passado", "Encontrar propósito e direção", "Outro"] },
+    { block: B2, key: "transformacao", title: "Qual transformação você mais gostaria de alcançar?",
+      options: ["Ter mais paz e equilíbrio emocional", "Desenvolver autoestima e confiança", "Melhorar meus relacionamentos", "Compreender melhor a mente e o comportamento humano", "Adquirir conhecimentos para ajudar outras pessoas"] },
+    { block: B3, key: "nivel_psicanalise", title: "Qual é o seu nível de conhecimento sobre psicanálise?",
+      options: ["Não conheço", "Já ouvi falar, mas conheço pouco", "Conheço os conceitos básicos", "Já fiz cursos ou estudei o assunto", "Já atuo ou tenho formação na área"] },
+    { block: B3, key: "interesse_psicanalise", title: "O que mais desperta seu interesse em estudar psicanálise?",
+      options: ["Meu próprio desenvolvimento pessoal", "Compreender melhor as pessoas e os relacionamentos", "Ajudar outras pessoas", "Explorar uma nova possibilidade profissional", "Ainda não tenho interesse em estudar psicanálise"] },
+    { block: B3, key: "assunto_interesse", title: "Qual desses assuntos mais chama sua atenção?",
+      options: ["Inteligência emocional e autoconhecimento", "Relacionamentos e comportamento humano", "Traumas, padrões emocionais e experiências do passado", "Psicanálise e funcionamento da mente", "Formação e aprofundamento em psicanálise"] },
+    { block: B3, key: "formato_aprendizado", title: "Qual formato de aprendizado você prefere?",
+      options: ["Aulas online gravadas", "Aulas online ao vivo", "Encontros presenciais", "Aulas gravadas com encontros ao vivo", "Conteúdos curtos e práticos"] },
+  ];
+
+  const stepsEl = document.getElementById("steps");
+  const bar = document.getElementById("bar");
+  const counter = document.getElementById("counter");
+  const nextBtn = document.getElementById("next");
+  const backBtn = document.getElementById("back");
+  const errorEl = document.getElementById("error");
+  let current = 0;
+
+  // Monta as perguntas
+  QUESTIONS.forEach((q, i) => {
+    const step = document.createElement("div");
+    step.className = "step";
+    step.innerHTML = `<p class="block-label">${q.block}</p><h2>${i + 1}. ${q.title}</h2>` + q.options.map(opt => `
+      <label class="option">
+        <input type="radio" name="${q.key}" value="${opt}"> <span>${opt}</span>
+      </label>
+      ${opt === "Outro" ? `<input type="text" class="other-input" name="${q.key}_outro" placeholder="Qual?">` : ""}
+    `).join("");
+    stepsEl.appendChild(step);
+  });
+  const steps = [...stepsEl.children];
+
+  function answerOf(q) {
+    const checked = document.querySelector(`input[name="${q.key}"]:checked`);
+    if (!checked) return "";
+    if (checked.value === "Outro") {
+      const txt = document.querySelector(`input[name="${q.key}_outro"]`).value.trim();
+      return txt ? `Outro: ${txt}` : "";
+    }
+    return checked.value;
+  }
+
+  function render() {
+    steps.forEach((s, i) => s.classList.toggle("active", i === current));
+    bar.style.width = `${(current / QUESTIONS.length) * 100}%`;
+    counter.textContent = `Pergunta ${current + 1} de ${QUESTIONS.length}`;
+    backBtn.hidden = current === 0;
+    nextBtn.textContent = current === QUESTIONS.length - 1 ? "Enviar respostas" : "Próxima";
+    nextBtn.disabled = !answerOf(QUESTIONS[current]);
+  }
+
+  stepsEl.addEventListener("change", e => {
+    const q = QUESTIONS[current];
+    if (e.target.type === "radio") {
+      const other = steps[current].querySelector(".other-input");
+      if (other) {
+        other.classList.toggle("show", e.target.value === "Outro");
+        if (e.target.value === "Outro") other.focus();
+      }
+      // avança sozinho ao escolher (exceto "Outro" e a última pergunta)
+      if (e.target.value !== "Outro" && current < QUESTIONS.length - 1) {
+        setTimeout(() => { current++; render(); }, 250);
+      }
+    }
+    nextBtn.disabled = !answerOf(q);
+  });
+  stepsEl.addEventListener("input", () => { nextBtn.disabled = !answerOf(QUESTIONS[current]); });
+
+  document.getElementById("start").addEventListener("click", () => {
+    document.getElementById("welcome").hidden = true;
+    document.getElementById("survey").hidden = false;
+    window.scrollTo(0, 0);
+  });
+
+  backBtn.addEventListener("click", () => { current--; render(); });
+  nextBtn.addEventListener("click", () => {
+    if (current < QUESTIONS.length - 1) { current++; render(); } else { submit(); }
+  });
+
+  async function submit() {
+    nextBtn.disabled = true;
+    nextBtn.textContent = "Enviando...";
+    errorEl.style.display = "none";
+
+    const data = new URLSearchParams();
+    QUESTIONS.forEach(q => data.append(q.key, answerOf(q)));
+    // Rastreia a origem do tráfego (utm_source, utm_campaign...)
+    new URLSearchParams(location.search).forEach((v, k) => { if (k.startsWith("utm_")) data.append(k, v); });
+
+    try {
+      await fetch(ENDPOINT, { method: "POST", mode: "no-cors", body: data });
+      steps.forEach(s => s.classList.remove("active"));
+      document.getElementById("done").classList.add("active");
+      document.getElementById("nav").style.display = "none";
+      document.querySelector(".progress").style.display = "none";
+      counter.style.display = "none";
+      window.scrollTo(0, 0);
+    } catch (err) {
+      errorEl.style.display = "block";
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Enviar respostas";
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
