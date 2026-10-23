@@ -107,13 +107,15 @@
   .option span { line-height: 1.35; }
   .option:has(input:checked) { border-color: var(--primary); background: var(--option-hover); }
 
-  .other-input {
+  .other-input, .text-input {
     display: none; width: 100%; margin: 4px 0 10px;
     padding: 12px 14px; font: inherit; color: var(--text);
     background: rgba(255, 255, 255, .04);
     border: 1.5px solid var(--border); border-radius: 10px;
   }
-  .other-input::placeholder { color: var(--muted); }
+  .other-input::placeholder, .text-input::placeholder { color: var(--muted); }
+  .text-input { display: block; padding: 14px 16px; font-size: 1rem; }
+  .text-input:focus { outline: none; border-color: var(--primary); }
   .other-input.show { display: block; }
   .other-input:focus { outline: none; border-color: var(--primary); }
 
@@ -233,6 +235,7 @@
       options: ["Até 24 anos", "25 a 34 anos", "35 a 44 anos", "45 a 54 anos", "55 anos ou mais"] },
     { block: B1, key: "ocupacao", title: "Qual é a sua ocupação atual?",
       options: ["Empresário(a) / Empreendedor(a)", "Profissional autônomo(a)", "Empregado(a) / CLT", "Executivo(a) / Gestor(a)", "Estudante", "Não estou trabalhando atualmente", "Outro"] },
+    { block: B1, key: "email", type: "email", title: "Informe o seu e-mail:", placeholder: "seuemail@exemplo.com" },
     { block: B1, key: "segmento", title: "Em qual segmento você atua atualmente?",
       options: ["Saúde e bem-estar", "Educação e ensino", "Comércio e varejo", "Serviços e consultoria", "Tecnologia e inovação", "Indústria", "Construção civil e mercado imobiliário", "Agronegócio", "Marketing e comunicação", "Liderança religiosa e atividades ministeriais", "Outro", "Não atuo profissionalmente no momento"] },
     { block: B1, key: "faturamento", title: "Qual é a faixa de faturamento mensal do seu negócio ou atividade profissional?",
@@ -266,7 +269,13 @@
     const step = document.createElement("div");
     step.className = "step";
     const [blockTag, blockName] = q.block.split(" — ");
-    step.innerHTML = `<p class="block-label"><span class="tag">${blockTag}</span><span>${blockName}</span></p><h2>${i + 1}. ${q.title}</h2>` + q.options.map(opt => `
+    const head = `<p class="block-label"><span class="tag">${blockTag}</span><span>${blockName}</span></p><h2>${i + 1}. ${q.title}</h2>`;
+    if (q.type === "email") {
+      step.innerHTML = head + `<input type="email" class="text-input" name="${q.key}" placeholder="${q.placeholder}" autocomplete="email" inputmode="email">`;
+      stepsEl.appendChild(step);
+      return;
+    }
+    step.innerHTML = head + q.options.map(opt => `
       <label class="option">
         <input type="radio" name="${q.key}" value="${opt}"> <span>${opt}</span>
       </label>
@@ -276,7 +285,13 @@
   });
   const steps = [...stepsEl.children];
 
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
   function answerOf(q) {
+    if (q.type === "email") {
+      const value = document.querySelector(`input[name="${q.key}"]`).value.trim().toLowerCase();
+      return EMAIL_RE.test(value) ? value : "";
+    }
     const checked = document.querySelector(`input[name="${q.key}"]:checked`);
     if (!checked) return "";
     if (checked.value === "Outro") {
@@ -293,6 +308,9 @@
     backBtn.hidden = current === 0;
     nextBtn.textContent = current === QUESTIONS.length - 1 ? "Enviar respostas" : "Próxima";
     nextBtn.disabled = !answerOf(QUESTIONS[current]);
+    if (QUESTIONS[current].type === "email") {
+      setTimeout(() => steps[current].querySelector(".text-input").focus(), 300);
+    }
   }
 
   stepsEl.addEventListener("change", e => {
@@ -311,6 +329,13 @@
     nextBtn.disabled = !answerOf(q);
   });
   stepsEl.addEventListener("input", () => { nextBtn.disabled = !answerOf(QUESTIONS[current]); });
+  // Enter no campo de e-mail avança, em vez de enviar o formulário
+  stepsEl.addEventListener("keydown", e => {
+    if (e.key === "Enter" && e.target.classList.contains("text-input")) {
+      e.preventDefault();
+      if (!nextBtn.disabled) nextBtn.click();
+    }
+  });
 
   document.getElementById("start").addEventListener("click", () => {
     document.getElementById("welcome").hidden = true;

@@ -11,7 +11,7 @@
  *
  * A aba "Respostas" é criada com as colunas abaixo. Se já existir uma aba
  * "Respostas" com colunas diferentes (versão antiga da pesquisa), ela é
- * renomeada para "Respostas (antiga)" e uma nova é criada.
+ * renomeada para "Respostas (antiga dd-MM HHhmm)" e uma nova é criada.
  */
 
 const SHEET_NAME = "Respostas";
@@ -22,17 +22,18 @@ const COLUMNS = [
   // Bloco 1 — Perfil e atuação profissional
   ["faixa_etaria", "1. Faixa etária"],
   ["ocupacao", "2. Ocupação"],
-  ["segmento", "3. Segmento"],
-  ["faturamento", "4. Faturamento mensal"],
+  ["email", "3. E-mail"],
+  ["segmento", "4. Segmento"],
+  ["faturamento", "5. Faturamento mensal"],
   // Bloco 2 — Dores, desafios e desejos
-  ["area_desenvolver", "5. Área que deseja desenvolver"],
-  ["maior_desafio", "6. Maior desafio"],
-  ["transformacao", "7. Transformação desejada"],
+  ["area_desenvolver", "6. Área que deseja desenvolver"],
+  ["maior_desafio", "7. Maior desafio"],
+  ["transformacao", "8. Transformação desejada"],
   // Bloco 3 — Conhecimento e interesse em psicanálise
-  ["nivel_psicanalise", "8. Conhecimento em psicanálise"],
-  ["interesse_psicanalise", "9. Interesse em estudar psicanálise"],
-  ["assunto_interesse", "10. Assunto de interesse"],
-  ["formato_aprendizado", "11. Formato preferido"],
+  ["nivel_psicanalise", "9. Conhecimento em psicanálise"],
+  ["interesse_psicanalise", "10. Interesse em estudar psicanálise"],
+  ["assunto_interesse", "11. Assunto de interesse"],
+  ["formato_aprendizado", "12. Formato preferido"],
   // Origem do tráfego
   ["utm_source", "utm_source"],
   ["utm_medium", "utm_medium"],
@@ -65,7 +66,8 @@ function getSheet_() {
   if (sheet && sheet.getLastColumn()) {
     const current = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     if (current.join("|") === titles.join("|")) return sheet;
-    sheet.setName(SHEET_NAME + " (antiga)");
+    const stamp = Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), "dd-MM HH'h'mm");
+    sheet.setName(`${SHEET_NAME} (antiga ${stamp})`);
     sheet = null;
   }
 
