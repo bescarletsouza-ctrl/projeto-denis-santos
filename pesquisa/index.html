@@ -43,12 +43,6 @@
     letter-spacing: .28em; text-transform: uppercase; margin: 0;
   }
   .brand .cross { color: var(--primary); letter-spacing: 0; margin: 0 .35em; }
-  header h1 {
-    font-family: var(--font); font-size: .7rem; font-weight: 700;
-    letter-spacing: .2em; text-transform: uppercase; color: var(--primary);
-    margin: 12px 0 0;
-  }
-  header h1::before { content: "● "; font-size: .6rem; vertical-align: 1px; }
 
   .progress { height: 4px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
   .progress span {
@@ -80,10 +74,14 @@
     font-size: 1.35rem; line-height: 1.3; margin: 0 0 22px;
   }
   .block-label {
-    display: inline-block; font-family: var(--font-type); font-weight: 700;
-    font-size: .75rem; text-transform: uppercase;
+    display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px;
+    font-family: var(--font-type); font-size: .78rem; color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .block-label .tag {
+    font-weight: 700; text-transform: uppercase; white-space: nowrap;
     background: var(--primary); color: var(--primary-text);
-    padding: 3px 10px; border-radius: 3px; margin: 0 0 14px;
+    padding: 2px 8px; border-radius: 3px;
   }
 
   .option {
@@ -94,7 +92,19 @@
     cursor: pointer; transition: background .15s, border-color .15s;
   }
   .option:hover { background: var(--option-hover); border-color: rgba(244, 178, 35, .4); }
-  .option input { accent-color: var(--primary); width: 18px; height: 18px; margin: 0; flex-shrink: 0; }
+  .option input {
+    appearance: none; -webkit-appearance: none;
+    width: 20px; height: 20px; margin: 0; flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, .35); border-radius: 50%;
+    display: grid; place-content: center; transition: border-color .15s;
+  }
+  .option input::before {
+    content: ""; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--primary); transform: scale(0); transition: transform .15s;
+  }
+  .option input:checked { border-color: var(--primary); }
+  .option input:checked::before { transform: scale(1); }
+  .option span { line-height: 1.35; }
   .option:has(input:checked) { border-color: var(--primary); background: var(--option-hover); }
 
   .other-input {
@@ -141,6 +151,22 @@
   .done p { color: var(--muted); line-height: 1.6; margin: 0 0 12px; }
   .done .highlight { color: var(--text); font-weight: 600; margin-top: 20px; }
   .done .bye { color: var(--text); margin: 0; }
+  @media (max-width: 480px) {
+    .wrap { padding: 20px 12px 24px; }
+    header { margin-bottom: 20px; }
+    .brand { font-size: .9rem; letter-spacing: .22em; }
+    .card { padding: 24px 16px; }
+    .welcome h2 { font-size: 1.65rem; }
+    .welcome p, .done p { font-size: .95rem; }
+    .welcome .time { font-size: .78rem; padding: 6px 10px; }
+    .step h2 { font-size: 1.2rem; margin-bottom: 18px; }
+    .option { padding: 12px 14px; gap: 12px; font-size: .95rem; }
+    .done h2 { font-size: 1.4rem; }
+    .nav { position: sticky; bottom: 0; margin: 16px -16px -24px; padding: 12px 16px 16px;
+           background: linear-gradient(to top, rgba(10, 25, 54, 1) 70%, rgba(10, 25, 54, 0));
+           border-radius: 0 0 var(--radius) var(--radius); }
+  }
+
   .error { color: #ff8a80; font-size: .9rem; margin-top: 12px; display: none; }
 </style>
 </head>
@@ -148,7 +174,6 @@
 <div class="wrap">
   <header>
     <p class="brand"><span class="cross">✚</span>Denis Santos<span class="cross">✚</span></p>
-    <h1>Pesquisa · Conhecendo nosso público</h1>
   </header>
 
   <!-- Tela de boas-vindas -->
@@ -156,7 +181,7 @@
     <div class="welcome">
       <h2>Queremos conhecer <em>melhor você!</em></h2>
       <p>Cada pessoa tem uma história, desafios e objetivos diferentes. E queremos entender um pouco mais sobre a sua realidade, seus interesses e o que é importante para você.</p>
-      <p>Preparamos uma pesquisa rápida para conhecer melhor quem acompanha o Denis Santos e desenvolver conteúdos e experiências cada vez mais relevantes.</p>
+      <p>Preparamos uma pesquisa rápida para te conhecer melhor e desenvolver conteúdos e experiências cada vez mais relevantes.</p>
       <p class="time">⏱ Leva apenas 3 minutos para responder.</p>
       <p class="cta">Vamos começar?</p>
       <button type="button" class="btn-primary" id="start">Começar</button>
@@ -240,7 +265,8 @@
   QUESTIONS.forEach((q, i) => {
     const step = document.createElement("div");
     step.className = "step";
-    step.innerHTML = `<p class="block-label">${q.block}</p><h2>${i + 1}. ${q.title}</h2>` + q.options.map(opt => `
+    const [blockTag, blockName] = q.block.split(" — ");
+    step.innerHTML = `<p class="block-label"><span class="tag">${blockTag}</span><span>${blockName}</span></p><h2>${i + 1}. ${q.title}</h2>` + q.options.map(opt => `
       <label class="option">
         <input type="radio" name="${q.key}" value="${opt}"> <span>${opt}</span>
       </label>
@@ -297,29 +323,29 @@
     if (current < QUESTIONS.length - 1) { current++; render(); } else { submit(); }
   });
 
-  async function submit() {
+  function submit() {
     nextBtn.disabled = true;
-    nextBtn.textContent = "Enviando...";
-    errorEl.style.display = "none";
 
     const data = new URLSearchParams();
     QUESTIONS.forEach(q => data.append(q.key, answerOf(q)));
     // Rastreia a origem do tráfego (utm_source, utm_campaign...)
     new URLSearchParams(location.search).forEach((v, k) => { if (k.startsWith("utm_")) data.append(k, v); });
 
-    try {
-      await fetch(ENDPOINT, { method: "POST", mode: "no-cors", body: data });
-      steps.forEach(s => s.classList.remove("active"));
-      document.getElementById("done").classList.add("active");
-      document.getElementById("nav").style.display = "none";
-      document.querySelector(".progress").style.display = "none";
-      counter.style.display = "none";
-      window.scrollTo(0, 0);
-    } catch (err) {
-      errorEl.style.display = "block";
-      nextBtn.disabled = false;
-      nextBtn.textContent = "Enviar respostas";
+    // O Apps Script leva alguns segundos para responder, então o envio segue em
+    // segundo plano (sendBeacon continua mesmo se a pessoa fechar a página)
+    // e o encerramento aparece na hora.
+    let queued = false;
+    try { queued = navigator.sendBeacon(ENDPOINT, data); } catch (err) {}
+    if (!queued) {
+      fetch(ENDPOINT, { method: "POST", mode: "no-cors", body: data, keepalive: true }).catch(() => {});
     }
+
+    steps.forEach(s => s.classList.remove("active"));
+    document.getElementById("done").classList.add("active");
+    document.getElementById("nav").style.display = "none";
+    document.querySelector(".progress").style.display = "none";
+    counter.style.display = "none";
+    window.scrollTo(0, 0);
   }
 
   render();
